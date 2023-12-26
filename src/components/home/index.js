@@ -14,11 +14,15 @@ class Home extends React.Component{
 
         this.state ={
             home:true,
+            edit:false,
             superUser:true,
             addUser:false,
             addVehicle:false,
             employeeData:[]
         }
+    }
+    handleEdit = () =>{
+        this.setState({home:false, edit:true})
     }
     getEmployeeData = () =>{
         // e.preventDefault();
@@ -65,6 +69,9 @@ class Home extends React.Component{
                 <AddUser />
             }
             {this.state.addVehicle &&
+                <AddVehicle />
+            }
+            {this.state.edit && 
                 <AddVehicle />
             }
             <Footer />

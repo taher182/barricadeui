@@ -11,8 +11,7 @@ class ListData extends React.Component {
         super(props);
         this.state = {
             employeeData: this.props.employeeData, // Initialize state with props
-            list:true,
-            edit:false
+           
         };
     }
     componentDidUpdate(prevProps) {
@@ -74,8 +73,7 @@ class ListData extends React.Component {
         const { employeeData, list,edit } = this.state;
 
         return (
-            <>
-            { list && 
+          
                 <>
                 <ToastContainer />
                  <div className='container-fluid d-flex align-items-center justify-content-center' >
@@ -111,13 +109,7 @@ class ListData extends React.Component {
                          </div>
                      </div>
                  </div>
-               </>
-            }
-
-            {edit && 
-            <AddVehicle />
-            }
-             </>
+         
         );
     }
 }
