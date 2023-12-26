@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import ListData from '../listData';
 import AddUser from '../addUser';
 import AddVehicle from '../addVehicle';
+import ListUserData from '../listUserData';
 import Cookies from 'js-cookie';
 class Home extends React.Component{
     constructor(props){
@@ -19,7 +20,9 @@ class Home extends React.Component{
             superUser:true,
             addUser:false,
             addVehicle:false,
-            employeeData:[]
+            listUsers:false,
+            employeeData:[],
+            userData:[]
         }
     }
     handleEdit = () =>{
@@ -37,18 +40,45 @@ class Home extends React.Component{
             toast.error("Failed to fetch Vehicle Data");
         })
     }
+    getUserData = () =>{
+        // e.preventDefault();
+        let url = `${BASE_URL}/user`
+        axios.get(url)
+        .then(response =>{
+            this.setState({userData:response.data})
+            Cookies.set('userData', JSON.stringify(response.data))
+        })
+        .catch(error =>{
+            toast.error("Failed to fetch user Data");
+        })
+    }
     componentDidMount(){
         this.getEmployeeData();
+        this.getUserData();
     }
     addUser = () =>{
-        this.setState({home:false, addUser:true, addVehicle:false});
+        this.setState({home:false, addUser:true, addVehicle:false, listUsers:false});
+    }
+    listUsers = () =>{
+        this.setState({home:false, addUser:false, addVehicle:false,listUsers:true});
+    }
+    listVehicles = () =>{
+        this.setState({home:true, addUser:false, addVehicle:false,listUsers:false});
     }
     addVehicle = () =>{
-        this.setState({home:false, addUser:false, addVehicle:true});
+        this.setState({home:false, addUser:false, addVehicle:true, listUsers:false});
     }
 
     handleAddVehicleBack = () => {
         this.setState({ home: true, addVehicle: false });
+        this.getEmployeeData(); // Refresh data if needed
+    };
+    handleAddUserBack = () => {
+        this.setState({ home: true, addUser: false });
+        this.getEmployeeData(); // Refresh data if needed
+    };
+    handleAddListUsersBack = () => {
+        this.setState({ home: true, listUsers: false });
         this.getEmployeeData(); // Refresh data if needed
     };
     render(){
@@ -60,7 +90,14 @@ class Home extends React.Component{
                 <div className='row'>
                     <div className='col'>
                         <button className='btn btn-primary m-2' style={{float:"right"}} onClick={this.addVehicle}>Add Vehicle</button>
-                        {this.state.superUser && <button className='btn btn-success m-2' style={{float:"right"}} onClick={this.addUser}>Add User</button>}
+                        {this.state.superUser && 
+                        <>
+                        <button className='btn btn-success m-2' style={{float:"right"}} onClick={this.addUser}>Add User</button>
+                        <button className='btn btn-warning m-2' style={{float:"right"}} onClick={this.listUsers}>List Users</button>
+                        
+                        </>
+                        }
+                        <button className='btn btn-secondary m-2' style={{float:"right"}} onClick={this.listVehicles}>List Vehicles</button>
                     </div>
                     <div className='w-100'></div>
                     <hr />
@@ -70,7 +107,11 @@ class Home extends React.Component{
                         <ListData employeeData={this.state.employeeData} />
                     </div>
                    }
-
+                     {this.state.listUsers &&  
+                    <div className='col'>
+                        <ListUserData userData={this.state.userData} />
+                    </div>
+                   }
                    {this.state.edit && 
                    <AddVehicle />
                    }
@@ -78,7 +119,10 @@ class Home extends React.Component{
             </div>
            
             {this.state.addUser &&
-                <AddUser />
+                <AddUser onBack={this.handleAddUserBack} />
+            }
+            {this.state.listUsers &&
+                <listUserData onBack={this.handleListUsersBack} />
             }
             {this.state.addVehicle &&
                 <AddVehicle onBack={this.handleAddVehicleBack}/>

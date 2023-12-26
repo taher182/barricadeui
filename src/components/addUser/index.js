@@ -15,7 +15,9 @@ class AddUser extends React.Component{
             home:false,
             addUser:true,
             userError:false,
-            employeeData:[]
+            employeeData:[],
+            id:this.props.id,
+            formTitle:'Add User'
         }
     }
     handleChange = (e) => {
@@ -26,6 +28,7 @@ class AddUser extends React.Component{
         e.preventDefault();
         this.setState({ [e.target.name]: e.target.value, userError:false });
     }
+    
     createUser = (e) =>{
         e.preventDefault();
         let formData = new FormData();
@@ -56,6 +59,36 @@ class AddUser extends React.Component{
             addUser: false,
             employeeData: employeeData ? JSON.parse(employeeData) : [] // Parse and handle undefined/null
         });
+        if (this.props.onBack) {
+            this.props.onBack();
+        }
+    }
+    componentDidUpdate(prevProps) {
+        if (prevProps.id !== this.props.id) {
+            this.setState({ id: this.props.id });
+        }
+    }
+    getUserData(userId){
+        let url = `${BASE_URL}/user/${userId}`
+        axios.get(url)
+        .then(response =>{
+            this.setState({userName:response.data.user_name, password:response.data.password})
+        })
+        .catch(error =>{
+            toast.error("Failed to fetch data")
+        })
+    }
+    editCheck(id){
+        if(id !==undefined){
+            this.setState({formTitle:'Edit User'})
+            this.getUserData(id);
+        }
+        else{
+            this.setState({formTitle:'Add User'})
+        }
+    }
+    componentDidMount(){
+        this.editCheck(this.state.id);
     }
     render(){
         return(
@@ -63,8 +96,9 @@ class AddUser extends React.Component{
             {this.state.addUser && 
               <div className='container align-items-center justify-content-center d-flex ' style={{ minHeight: '75vh' }}>
               <div className='card p-4' style={{ width: '400px' }}>
-                <h4 className='text-center'>Add User</h4>
+                <h4 className='text-center'>{this.state.formTitle}</h4>
                 <hr/>
+                {console.log("this is id", this.state.id)}
                   <form onSubmit={this.createUser}>
                   <div className="form-group mb-3">
                               <label htmlFor="username">User Name<span className='text-danger'>*</span></label>
