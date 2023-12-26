@@ -6,8 +6,9 @@ import BASE_URL from '../config';
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import ListData from '../listData';
-import AddUser from '../addUser'
-import AddVehicle from '../addVehicle'
+import AddUser from '../addUser';
+import AddVehicle from '../addVehicle';
+import Cookies from 'js-cookie';
 class Home extends React.Component{
     constructor(props){
         super(props);
@@ -30,6 +31,7 @@ class Home extends React.Component{
         axios.get(url)
         .then(response =>{
             this.setState({employeeData:response.data})
+            Cookies.set('employeeData', JSON.stringify(response.data))
         })
         .catch(error =>{
             toast.error("Failed to fetch Vehicle Data");
@@ -44,12 +46,17 @@ class Home extends React.Component{
     addVehicle = () =>{
         this.setState({home:false, addUser:false, addVehicle:true});
     }
+
+    handleAddVehicleBack = () => {
+        this.setState({ home: true, addVehicle: false });
+        this.getEmployeeData(); // Refresh data if needed
+    };
     render(){
         return(
             <>
             <ToastContainer />
             <Header />
-           {this.state.home &&  <div className='container mt-5'>
+           <div className='container mt-5'>
                 <div className='row'>
                     <div className='col'>
                         <button className='btn btn-primary m-2' style={{float:"right"}} onClick={this.addVehicle}>Add Vehicle</button>
@@ -58,18 +65,23 @@ class Home extends React.Component{
                     <div className='w-100'></div>
                     <hr />
                     <div className='w-100'></div>
+                    {this.state.home &&  
                     <div className='col'>
                         <ListData employeeData={this.state.employeeData} />
                     </div>
-                  
+                   }
+
+                   {this.state.edit && 
+                   <AddVehicle />
+                   }
                 </div>
             </div>
-            }
+           
             {this.state.addUser &&
                 <AddUser />
             }
             {this.state.addVehicle &&
-                <AddVehicle />
+                <AddVehicle onBack={this.handleAddVehicleBack}/>
             }
             {this.state.edit && 
                 <AddVehicle />

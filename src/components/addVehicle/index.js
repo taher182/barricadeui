@@ -1,10 +1,14 @@
 import React from 'react';
 import BASE_URL from '../config';
 import Home from '../home';
+import ListData from '../listData';
 import axios from 'axios';
 import {toast, ToastContainer} from 'react-toastify';
+import Cookies from 'js-cookie';
 import 'react-toastify/dist/ReactToastify.css';
+let employeeData = Cookies.get('employeeData');
 class addVehicle extends React.Component{
+    
     constructor(props){
         super(props);
         this.state = {
@@ -13,9 +17,11 @@ class addVehicle extends React.Component{
             numberPlate:'',
             home:false,
             addUser:true,
-            employeeError:false
+            employeeError:false,
+            employeeData:[]
         }
     }
+    
     handleChange = (e) => {
         e.preventDefault();
         this.setState({ [e.target.name]: e.target.value });
@@ -50,15 +56,29 @@ class addVehicle extends React.Component{
     }
     handleBack = (e) =>{
         e.preventDefault();
+        // Retrieve employee data when 'Back' is clicked
+        const employeeData = Cookies.get('employeeData');
         this.setState({
-            home:true, addUser:false
+            home: true,
+            addUser: false,
+            employeeData: employeeData ? JSON.parse(employeeData) : [] // Parse and handle undefined/null
+           
         });
+        if (this.props.onBack) {
+            this.props.onBack();
+        }
     }
+    // handleBack = (e) => {
+    //     e.preventDefault();
+    //     // Notify parent component (Home) to reset its state
+       
+    // };
+    
     render(){
         return(
             <>
             {this.state.addUser && 
-              <div className='container align-items-center justify-content-center d-flex mt-5' style={{ minHeight: '75vh' }}>
+              <div className='container align-items-center justify-content-center d-flex ' style={{ minHeight: '75vh' }}>
                 
               <div className='card p-4' style={{ width: '400px' }}>
               <h4 className='text-center'>Add Vehicle</h4>
@@ -92,7 +112,7 @@ class addVehicle extends React.Component{
             }
             {
                 this.state.home &&
-                <Home />
+                <ListData employeeData={this.state.employeeData} />
             }
             </>
         )

@@ -2,8 +2,10 @@ import React from 'react';
 import BASE_URL from '../config';
 import Home from '../home';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import ListData from '../listData';
 class AddUser extends React.Component{
     constructor(props){
         super(props);
@@ -12,7 +14,8 @@ class AddUser extends React.Component{
             password:'',
             home:false,
             addUser:true,
-            userError:false
+            userError:false,
+            employeeData:[]
         }
     }
     handleChange = (e) => {
@@ -46,15 +49,19 @@ class AddUser extends React.Component{
     }
     handleBack = (e) =>{
         e.preventDefault();
+        // Retrieve employee data when 'Back' is clicked
+        const employeeData = Cookies.get('employeeData');
         this.setState({
-            home:true, addUser:false
+            home: true,
+            addUser: false,
+            employeeData: employeeData ? JSON.parse(employeeData) : [] // Parse and handle undefined/null
         });
     }
     render(){
         return(
             <>
             {this.state.addUser && 
-              <div className='container align-items-center justify-content-center d-flex mt-5' style={{ minHeight: '75vh' }}>
+              <div className='container align-items-center justify-content-center d-flex ' style={{ minHeight: '75vh' }}>
               <div className='card p-4' style={{ width: '400px' }}>
                 <h4 className='text-center'>Add User</h4>
                 <hr/>
@@ -82,7 +89,7 @@ class AddUser extends React.Component{
             }
             {
                 this.state.home &&
-                <Home />
+                <ListData employeeData={this.state.employeeData} />
             }
             </>
         )
