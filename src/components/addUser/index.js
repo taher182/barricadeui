@@ -17,7 +17,9 @@ class AddUser extends React.Component{
             userError:false,
             employeeData:[],
             id:this.props.id,
-            formTitle:'Add User'
+            formTitle:'Add User',
+            buttonText:'Add',
+            superUser:false,
         }
     }
     handleChange = (e) => {
@@ -50,6 +52,23 @@ class AddUser extends React.Component{
             toast.error("Failed to add user");
         })
     }
+
+    editUser =(e) =>{
+        const {userName, password, superUser} = this.state;
+        e.preventDefault();
+        let formData = new FormData();
+        formData.append('user_name',userName)
+        formData.append('password', password)
+        formData.append('super_user', superUser)
+        url = `${BASE_URL}/user/${this.state.id}`
+        axios.put(url, formData)
+        .then(response =>{
+            toast.success("User update successful");
+        })
+        .then(error =>{
+            toast.error("failed to update user");
+        })
+    }
     handleBack = (e) =>{
         e.preventDefault();
         // Retrieve employee data when 'Back' is clicked
@@ -72,7 +91,7 @@ class AddUser extends React.Component{
         let url = `${BASE_URL}/user/${userId}`
         axios.get(url)
         .then(response =>{
-            this.setState({userName:response.data.user_name, password:response.data.password})
+            this.setState({userName:response.data.user_name, password:response.data.password, superUser:response.data.super_user})
         })
         .catch(error =>{
             toast.error("Failed to fetch data")
@@ -80,11 +99,11 @@ class AddUser extends React.Component{
     }
     editCheck(id){
         if(id !==undefined){
-            this.setState({formTitle:'Edit User'})
+            this.setState({formTitle:'Edit User', buttonText:'Edit'})
             this.getUserData(id);
         }
         else{
-            this.setState({formTitle:'Add User'})
+            this.setState({formTitle:'Add User', buttonText:'Add'})
         }
     }
     componentDidMount(){
@@ -99,7 +118,7 @@ class AddUser extends React.Component{
                 <h4 className='text-center'>{this.state.formTitle}</h4>
                 <hr/>
                 {console.log("this is id", this.state.id)}
-                  <form onSubmit={this.createUser}>
+                  <form onSubmit={this.state.id !=undefined?this.createUser:this.editUser}>
                   <div className="form-group mb-3">
                               <label htmlFor="username">User Name<span className='text-danger'>*</span></label>
                               <input type="text" className="form-control" id="username" placeholder="Enter user name" name='userName' onChange={this.handleUserNameChange} value={this.state.userName} required/>
@@ -112,7 +131,7 @@ class AddUser extends React.Component{
                           </div>
 
                           <div className="form-group mb-3">
-                              <button className="btn btn-primary w-100" >Add</button>
+                              <button className="btn btn-primary w-100" >{this.state.buttonText}</button>
                           </div>
                   </form>
                   <hr />
