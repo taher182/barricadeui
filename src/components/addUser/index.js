@@ -5,7 +5,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import ListData from '../listData';
+import ListUserData from '../listUserData';
 class AddUser extends React.Component{
     constructor(props){
         super(props);
@@ -15,7 +15,7 @@ class AddUser extends React.Component{
             home:false,
             addUser:true,
             userError:false,
-            employeeData:[],
+            userData:[],
             id:this.props.id,
             formTitle:'Add User',
             buttonText:'Add',
@@ -53,30 +53,52 @@ class AddUser extends React.Component{
         })
     }
 
-    editUser =(e) =>{
-        const {userName, password, superUser} = this.state;
+    editUser = (e) => {
+        const { userName, password, superUser } = this.state;
         e.preventDefault();
         let formData = new FormData();
-        formData.append('user_name',userName)
-        formData.append('password', password)
-        formData.append('super_user', superUser)
-        url = `${BASE_URL}/user/${this.state.id}`
+        formData.append('user_name', userName);
+        formData.append('password', password);
+        formData.append('super_user', superUser);
+    
+        let url = `${BASE_URL}/user/${this.state.id}`;
         axios.put(url, formData)
+            .then(response => {
+                toast.success("User update successful");
+                // Assuming updatedUser contains the updated user data
+                const updatedUser = {
+                    id: this.state.id,
+                    userName: userName,
+                    password: password,
+                    superUser: superUser
+                };
+                this.props.onUpdateUserData(updatedUser);
+            })
+            .catch(error => {
+                // toast.error("failed to update user");
+            });
+    };
+    getUserData1 = () =>{
+        // e.preventDefault();
+        let url = `${BASE_URL}/user`
+        axios.get(url)
         .then(response =>{
-            toast.success("User update successful");
+            this.setState({userData:response.data})
+            Cookies.set('userData', JSON.stringify(response.data))
         })
-        .then(error =>{
-            toast.error("failed to update user");
+        .catch(error =>{
+            toast.error("Failed to fetch user Data");
         })
     }
     handleBack = (e) =>{
         e.preventDefault();
+        this.getUserData1();
         // Retrieve employee data when 'Back' is clicked
-        const employeeData = Cookies.get('employeeData');
+        const userData = Cookies.get('userData');
         this.setState({
             home: true,
             addUser: false,
-            employeeData: employeeData ? JSON.parse(employeeData) : [] // Parse and handle undefined/null
+            userData: userData ? JSON.parse(userData) : [] // Parse and handle undefined/null
         });
         if (this.props.onBack) {
             this.props.onBack();
@@ -118,7 +140,7 @@ class AddUser extends React.Component{
                 <h4 className='text-center'>{this.state.formTitle}</h4>
                 <hr/>
                 {console.log("this is id", this.state.id)}
-                  <form onSubmit={this.state.id !=undefined?this.createUser:this.editUser}>
+                  <form onSubmit={this.state.id !=undefined?this.editUser:this.createUser}>
                   <div className="form-group mb-3">
                               <label htmlFor="username">User Name<span className='text-danger'>*</span></label>
                               <input type="text" className="form-control" id="username" placeholder="Enter user name" name='userName' onChange={this.handleUserNameChange} value={this.state.userName} required/>
@@ -142,7 +164,7 @@ class AddUser extends React.Component{
             }
             {
                 this.state.home &&
-                <ListData employeeData={this.state.employeeData} />
+                <ListUserData userData={this.state.userData} />
             }
             </>
         )

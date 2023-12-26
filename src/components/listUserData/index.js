@@ -96,7 +96,7 @@ class ListUserData extends React.Component {
                                     <tbody>
                                         {userData.map(user => (
                                             <tr key={user.id}>
-                                                <td>{user.id}</td>
+                                                <td>{user.user_name}</td>
                                                 <td>{user.password}</td>
                                                
                                                 <td>

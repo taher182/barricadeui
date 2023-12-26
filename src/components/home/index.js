@@ -55,7 +55,16 @@ class Home extends React.Component{
     componentDidMount(){
         this.getEmployeeData();
         this.getUserData();
+        Cookies.set('userData', JSON.stringify(this.state.userData));
     }
+    updateUserData = (updatedUser) => {
+        this.setState(prevState => ({
+            userData: prevState.userData.map(user => 
+                user.id === updatedUser.id ? updatedUser : user
+            )
+        }));
+    }
+    
     addUser = () =>{
         this.setState({home:false, addUser:true, addVehicle:false, listUsers:false});
     }
@@ -117,10 +126,9 @@ class Home extends React.Component{
                    }
                 </div>
             </div>
-           
             {this.state.addUser &&
-                <AddUser onBack={this.handleAddUserBack} />
-            }
+    <AddUser onBack={this.handleAddUserBack} onUpdateUserData={this.updateUserData} />
+}
             {this.state.listUsers &&
                 <listUserData onBack={this.handleListUsersBack} />
             }
