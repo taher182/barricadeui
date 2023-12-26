@@ -20,10 +20,7 @@ class addVehicle extends React.Component{
         e.preventDefault();
         this.setState({ [e.target.name]: e.target.value });
     }
-    handleUserNameChange = (e) =>{
-        e.preventDefault();
-        this.setState({ [e.target.name]: e.target.value, userError:false });
-    }
+   
     createUser = (e) => {
         e.preventDefault();
         let formData = new FormData();
@@ -69,17 +66,17 @@ class addVehicle extends React.Component{
                   <form onSubmit={this.createUser}>
                   <div className="form-group mb-3">
                               <label htmlFor="employeeId">Employee Id<span className='text-danger'>*</span></label>
-                              <input type="text" className="form-control" id="employeeId" placeholder="Enter employee id" name='employeeId' onChange={this.handleUserNameChange} value={this.state.userName} required/>
+                              <input type="text" className="form-control" id="employeeId" placeholder="Enter employee id" name='employeeId' onChange={this.handleChange} value={this.state.employeeId} required/>
                               {this.state.employeeError && <small className='text-danger'>Employee already exists</small>}
                           </div>
                   <div className="form-group mb-3">
                               <label htmlFor="name">Name<span className='text-danger'>*</span></label>
-                              <input type="text" className="form-control" id="Email" placeholder="Enter name" name='name' onChange={this.handleChange} value={this.state.password} required/>
+                              <input type="text" className="form-control" id="Email" placeholder="Enter name" name='name' onChange={this.handleChange} value={this.state.name} required/>
 
                           </div>
                   <div className="form-group mb-3">
                               <label htmlFor="numberplate">Number Plate<span className='text-danger'>*</span></label>
-                              <input type="text" className="form-control" id="numberplate" placeholder="Enter number plate" name='numberPlate' onChange={this.handleChange} value={this.state.password} required/>
+                              <input type="text" className="form-control" id="numberplate" placeholder="Enter number plate" name='numberPlate' onChange={this.handleChange} value={this.state.numberPlate} required/>
 
                           </div>
 
