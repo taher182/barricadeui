@@ -100,7 +100,7 @@ class ListUserData extends React.Component {
                                           
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody >
                                         {userData.map(user => (
                                             <tr key={user.id}>
                                                 <td>{user.user_name}</td>

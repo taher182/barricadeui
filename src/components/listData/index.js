@@ -81,16 +81,16 @@ class ListData extends React.Component {
             <>
                 <ToastContainer />
                 {this.state.list &&
-                    <div className='container-fluid d-flex align-items-center justify-content-center' >
-                        <div className='row justify-content-center'>
+                    <div className='container-fluid  d-flex align-items-center justify-content-center' style={{overflow:"auto"}}>
+                        <div className='row justify-content-center '>
                             <div className='col text-light text-center'>
                                 <h4>Vehicle Data</h4>
 
                                 <hr />
                             </div>
                             <div className='w-100'></div>
-                            <div className='col-auto'>
-                                <table className='table rounded-table text-center'>
+                            <div className='col m-1'>
+                                <table className='table text-center'>
                                     <thead>
                                         <tr>
                                             <th>Employee Id</th>

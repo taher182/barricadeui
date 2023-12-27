@@ -17,14 +17,18 @@ code {
 }
 tr, td,th{
   padding:10px;
-  border:1px solid black;
-  border-radius:10px;
+  border:1px solid white;
   background:none;
-  margin:2px;
+  background-color: #1d3545 !important;
+  color: white !important;
 
 }
+
+
 table{
-  background:none;
+  background-color: #162936 !important;
+  color: white !important;
+  border-radius:10px;
 }
 
 input{

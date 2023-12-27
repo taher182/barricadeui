@@ -149,7 +149,7 @@ class AddUser extends React.Component{
                   <div className="form-group mb-3">
                               <label htmlFor="Email">password<span className='text-danger'>*</span></label>
                               <input type="text" className="form-control" id="Email" placeholder="Enter password" name='password' onChange={this.handleChange} value={this.state.password} required/>
-
+                                
                           </div>
 
                           <div className="form-group mb-3">
