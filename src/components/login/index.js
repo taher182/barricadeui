@@ -168,7 +168,7 @@ class LoginForm extends React.Component
                 <Header />
                 <ToastContainer />
                 {this.state.route && <Navigate to='/home' />}
-                <div className='container d-flex justify-content-center align-items-center login-container' >
+                <div className='container d-flex justify-content-center align-items-center login-container' style={{ minHeight: '100vh' }}>
                     <div className='card p-4 rounded shadow' style={{ width: '400px' }}>
                         <h2 className="text-center">{this.state.title}</h2>
                         <form onSubmit={this.login}>

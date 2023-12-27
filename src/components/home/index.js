@@ -143,7 +143,7 @@ class Home extends React.Component{
             {this.state.toLogin && <Navigate to='/' />}
            <div className='container mt-5'>
                 <div className='row'>
-                    <div className='col justify-content-center align-items-center'>
+                    <div className='col justify-content-center align-items-center mt-4'>
                         <center>
                         <button className='btn btn-primary m-2' onClick={this.addVehicle}> <FontAwesomeIcon icon={faPlus} /></button>
                         <button className='btn btn-secondary m-2'  onClick={this.listVehicles}><FontAwesomeIcon icon={faCar} /></button>
