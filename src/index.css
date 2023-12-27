@@ -44,3 +44,8 @@ input{
   background:none;
   color:white;
 }
+
+.Toastify__toast {
+  background-color: #162936 !important; /* Replace with your desired background color */
+  color: #ffffff !important; /* Replace with your desired text color */
+}
