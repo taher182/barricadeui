@@ -201,7 +201,7 @@ class LoginForm extends React.Component
                             )}
 
                             {/* Submit Button */}
-                            <button type="submit" className="btn btn-primary w-100">{this.state.buttonText}</button>
+                            <button type="submit" className="btn btn-info w-100">{this.state.buttonText}</button>
 
                             {/* Back Button */}
                             {this.state.backButtonState && (

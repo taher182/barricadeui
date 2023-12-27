@@ -121,7 +121,7 @@ class AddUser extends React.Component{
     }
     editCheck(id){
         if(id !==undefined){
-            this.setState({formTitle:'Edit User', buttonText:'Edit'})
+            this.setState({formTitle:'Update User', buttonText:'Update'})
             this.getUserData(id);
         }
         else{
@@ -153,11 +153,11 @@ class AddUser extends React.Component{
                           </div>
 
                           <div className="form-group mb-3">
-                              <button className="btn btn-primary w-100" >{this.state.buttonText}</button>
+                              <button className="btn btn-info w-100" >{this.state.buttonText}</button>
                           </div>
                   </form>
                   <hr />
-                  <button className=' btn btn-info mt-2' onClick={this.handleBack}>Back</button>
+                  <button className=' btn btn-outline-info mt-2' onClick={this.handleBack}>Back</button>
                   </div>
 
               </div>

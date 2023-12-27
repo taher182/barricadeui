@@ -18,7 +18,10 @@ class addVehicle extends React.Component{
             home:false,
             addUser:true,
             employeeError:false,
-            employeeData:[]
+            employeeData:[],
+            id:this.props.id,
+            formTitle:'Add Vehicle',
+            buttonText:'Add',
         }
     }
     
@@ -27,7 +30,7 @@ class addVehicle extends React.Component{
         this.setState({ [e.target.name]: e.target.value });
     }
    
-    createUser = (e) => {
+    createVehicle = (e) => {
         e.preventDefault();
         let formData = new FormData();
         formData.append('employee_id', this.state.employeeId);
@@ -54,8 +57,69 @@ class addVehicle extends React.Component{
                 toast.error("Failed to add Vehicle");
             });
     }
+
+    editVehicle = (e) => {
+        const { employeeId, name, numberPlate } = this.state;
+        e.preventDefault();
+        let formData = new FormData();
+        formData.append('employee_id', employeeId);
+        formData.append('name', name);
+        formData.append('number_plate', numberPlate);
+    
+        let url = `${BASE_URL}/employee/${this.state.id}`;
+        axios.put(url, formData)
+            .then(response => {
+                toast.success("Vehicle update successful");
+                // Assuming updatedUser contains the updated user data
+                const updatedEmployee = {
+                    id: this.state.id,
+                    employeeId: employeeId,
+                    name: name,
+                    numberPlate: numberPlate
+                };
+                this.props.onUpdateEmployeeData(updatedEmployee);
+            })
+            .catch(error => {
+                // toast.error("failed to update user");
+            });
+    };
+    getEmployeeData1 = () =>{
+        // e.preventDefault();
+        let url = `${BASE_URL}/employee`
+        axios.get(url)
+        .then(response =>{
+            this.setState({userData:response.data})
+            Cookies.set('employeeData', JSON.stringify(response.data))
+        })
+        .catch(error =>{
+            toast.error("Failed to fetch employee Data");
+        })
+    }
+    getEmployeeData(userId){
+        let url = `${BASE_URL}/employee/${userId}`
+        axios.get(url)
+        .then(response =>{
+            this.setState({employeeId:response.data.employee_id, name:response.data.name, numberPlate:response.data.number_plate})
+        })
+        .catch(error =>{
+            toast.error("Failed to fetch data")
+        })
+    }
+    editCheck(id){
+        if(id !==undefined){
+            this.setState({formTitle:'Update Vehicle', buttonText:'Update'})
+            this.getEmployeeData(id);
+        }
+        else{
+            this.setState({formTitle:'Add Vehicle', buttonText:'Add'})
+        }
+    }
+    componentDidMount(){
+        this.editCheck(this.state.id);
+    }
     handleBack = (e) =>{
         e.preventDefault();
+        this.getEmployeeData1();
         // Retrieve employee data when 'Back' is clicked
         const employeeData = Cookies.get('employeeData');
         this.setState({
@@ -81,9 +145,9 @@ class addVehicle extends React.Component{
               <div className='container align-items-center justify-content-center d-flex ' style={{ minHeight: '75vh' }}>
                 
               <div className='card p-4' style={{ width: '400px' }}>
-              <h4 className='text-center'>Add Vehicle</h4>
+              <h4 className='text-center'>{this.state.formTitle}</h4>
               <hr />
-                  <form onSubmit={this.createUser}>
+                  <form onSubmit={this.state.id !=undefined? this.editVehicle:this.createVehicle}>
                   <div className="form-group mb-3">
                               <label htmlFor="employeeId">Employee Id<span className='text-danger'>*</span></label>
                               <input type="text" className="form-control" id="employeeId" placeholder="Enter employee id" name='employeeId' onChange={this.handleChange} value={this.state.employeeId} required/>
@@ -101,11 +165,11 @@ class addVehicle extends React.Component{
                           </div>
 
                           <div className="form-group mb-3">
-                              <button className="btn btn-primary w-100" >Add</button>
+                              <button className="btn btn-info w-100" >{this.state.buttonText}</button>
                           </div>
                   </form>
                   <hr />
-                  <button className=' btn btn-info mt-2' onClick={this.handleBack}>Back</button>
+                  <button className=' btn btn-outline-info mt-2' onClick={this.handleBack}>Back</button>
                   </div>
 
               </div>

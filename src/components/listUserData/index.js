@@ -83,11 +83,18 @@ class ListUserData extends React.Component {
                 {this.state.list &&
                     <div className='container-fluid d-flex align-items-center justify-content-center' >
                         <div className='row justify-content-center'>
+                        <div className='col text-light text-center'>
+                                <h4>User Data</h4>
+
+                                <hr />
+                            </div>
+                            <div className='w-100'></div>
                             <div className='col-auto'>
                                 <table className='table rounded-table text-center'>
                                     <thead>
                                         <tr>
                                             <th>User Name</th>
+                                            <th>Super User</th>
                                             <th>Password</th>
                                             <th>Action</th>
                                           
@@ -97,6 +104,7 @@ class ListUserData extends React.Component {
                                         {userData.map(user => (
                                             <tr key={user.id}>
                                                 <td>{user.user_name}</td>
+                                                <td>{user.super_user ? 'Yes' : 'No'}</td>
                                                 <td>{user.password}</td>
                                                
                                                 <td>

@@ -13,7 +13,8 @@ class ListData extends React.Component {
         this.state = {
             employeeData: this.props.employeeData, // Initialize state with props
             list:true,
-            edit:false
+            edit:false,
+            id:''
         };
     }
     componentDidUpdate(prevProps) {
@@ -67,7 +68,8 @@ class ListData extends React.Component {
         );
     };
 
-    handleEdit = () => {
+    handleEdit = (userId) => {
+        this.setState({id:userId});
         this.setState({ edit: true, list: false });
     }
 
@@ -81,6 +83,12 @@ class ListData extends React.Component {
                 {this.state.list &&
                     <div className='container-fluid d-flex align-items-center justify-content-center' >
                         <div className='row justify-content-center'>
+                            <div className='col text-light text-center'>
+                                <h4>Vehicle Data</h4>
+
+                                <hr />
+                            </div>
+                            <div className='w-100'></div>
                             <div className='col-auto'>
                                 <table className='table rounded-table text-center'>
                                     <thead>
@@ -102,7 +110,7 @@ class ListData extends React.Component {
                                                 <td>{employee.in_time}</td>
                                                 <td>{employee.out_time}</td>
                                                 <td>
-                                                    <button className='btn btn-info m-1' onClick={() => this.handleEdit()}><FontAwesomeIcon icon={faEdit} /></button>
+                                                    <button className='btn btn-info m-1' onClick={() => this.handleEdit(employee.id)}><FontAwesomeIcon icon={faEdit} /></button>
                                                     <button className='btn btn-danger m-1' onClick={() => this.handleDelete(employee.id)}><FontAwesomeIcon icon={faTrashAlt} /></button>
                                                 </td>
                                             </tr>
@@ -115,7 +123,7 @@ class ListData extends React.Component {
                 }
 
                 {this.state.edit && 
-                    <AddVehicle />
+                    <AddVehicle id={this.state.id}/>
                 }
             </>
         );

@@ -99,6 +99,7 @@ class Home extends React.Component{
                 <div className='row'>
                     <div className='col'>
                         <button className='btn btn-primary m-2' style={{float:"right"}} onClick={this.addVehicle}>Add Vehicle</button>
+                        <button className='btn btn-secondary m-2' style={{float:"right"}} onClick={this.listVehicles}>List Vehicles</button>
                         {this.state.superUser && 
                         <>
                         <button className='btn btn-success m-2' style={{float:"right"}} onClick={this.addUser}>Add User</button>
@@ -106,7 +107,7 @@ class Home extends React.Component{
                         
                         </>
                         }
-                        <button className='btn btn-secondary m-2' style={{float:"right"}} onClick={this.listVehicles}>List Vehicles</button>
+                       
                     </div>
                     <div className='w-100'></div>
                     <hr />
