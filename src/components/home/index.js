@@ -17,7 +17,7 @@ class Home extends React.Component{
         this.state ={
             home:true,
             edit:false,
-            superUser:true,
+            superUser:Cookies.get('super_user'),
             addUser:false,
             addVehicle:false,
             listUsers:false,
@@ -91,6 +91,7 @@ class Home extends React.Component{
         this.getEmployeeData(); // Refresh data if needed
     };
     render(){
+        console.log("super user", this.state.superUser);
         return(
             <>
             <ToastContainer />
@@ -100,8 +101,10 @@ class Home extends React.Component{
                     <div className='col'>
                         <button className='btn btn-primary m-2' style={{float:"right"}} onClick={this.addVehicle}>Add Vehicle</button>
                         <button className='btn btn-secondary m-2' style={{float:"right"}} onClick={this.listVehicles}>List Vehicles</button>
-                        {this.state.superUser && 
+                        {this.state.superUser !=='false' && 
+
                         <>
+                        
                         <button className='btn btn-success m-2' style={{float:"right"}} onClick={this.addUser}>Add User</button>
                         <button className='btn btn-warning m-2' style={{float:"right"}} onClick={this.listUsers}>List Users</button>
                         

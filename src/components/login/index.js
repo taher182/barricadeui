@@ -6,6 +6,7 @@ import Cookies from 'js-cookie';
 import BASE_URL from '../config';
 import Header from '../header';
 import Footer from '../footer';
+
 class LoginForm extends React.Component
 {
     
@@ -21,7 +22,7 @@ class LoginForm extends React.Component
             backButtonState:false,
             buttonText:"Login",
             passwordViewState:"password",
-            email:'',
+            userName:'',
             password:'',
             id:'',
             route:false,
@@ -118,7 +119,7 @@ class LoginForm extends React.Component
             this.setState({passwordViewState:"password"})
         }
     }
-    handleEmailChange = (e) =>{
+    handleUserChange = (e) =>{
         this.setState({[e.target.name]:e.target.value, eError:false})
     }
     handlePasswordChange = (e) =>{
@@ -127,21 +128,15 @@ class LoginForm extends React.Component
     login = (e) => {
         e.preventDefault(); // Prevents the default form submission behavior
     
-        const { email, password } = this.state;
+        const { userName, password } = this.state;
         const formData = new FormData();
-        formData.append('email', email);
+        formData.append('user_name', userName);
         formData.append('password', password);
     
-        axios.post(`${BASE_URL}/users/login`, formData)
+        axios.post(`${BASE_URL}/userlogin`, formData)
           .then(response => {
-            let id = response.data.id;
-            let email = response.data.email;
-            let userImage = response.data.image;
-            Cookies.set('id', id);
-            Cookies.set('email', email);
-            Cookies.set('userImage', userImage);
-            Cookies.set('notificationMessage', 'Login Success');
-            Cookies.set('notificationStatus', 'true')
+            let super_user = response.data.super_user;
+            Cookies.set('super_user', super_user)
             this.setState({ route: true });
             toast.success('Login Success')
           })
@@ -172,16 +167,16 @@ class LoginForm extends React.Component
             <>
                 <Header />
                 <ToastContainer />
-
+                {this.state.route && <Navigate to='/home' />}
                 <div className='container d-flex justify-content-center align-items-center login-container' style={{ minHeight: '100vh' }}>
                     <div className='card p-4 rounded shadow' style={{ width: '400px' }}>
                         <h2 className="text-center">{this.state.title}</h2>
-                        <form onSubmit={this.state.passwordState ? this.login : this.sendPasswordResetLink}>
+                        <form onSubmit={this.login}>
                             {/* Email Input */}
                             <div className="form-group mb-3">
-                                <label htmlFor="Email">Email<span className='text-danger'>*</span></label>
-                                <input type="email" className="form-control" id="Email" placeholder="Enter Email" name='email' onChange={this.handleEmailChange} />
-                                {this.state.eError && <small className='text-danger'>Email not found</small>}
+                                <label htmlFor="userName">User Name<span className='text-danger'>*</span></label>
+                                <input type="text" className="form-control" id="userName" placeholder="Enter user name" name='userName' onChange={this.handleUserChange} />
+                                {this.state.eError && <small className='text-danger'>User not found</small>}
                             </div>
 
                             {/* Password Input */}
