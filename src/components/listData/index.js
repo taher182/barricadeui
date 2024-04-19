@@ -11,7 +11,7 @@ class ListData extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            employeeData: this.props.employeeData, // Initialize state with props
+            employeeData: [], // Initialize state with props
             list:true,
             edit:false,
             id:''
@@ -21,6 +21,23 @@ class ListData extends React.Component {
         if (prevProps.employeeData !== this.props.employeeData) {
             this.setState({ employeeData: this.props.employeeData });
         }
+    }
+
+    getEmployeeData = () =>{
+        // e.preventDefault();
+        let url = `${BASE_URL}/employee`
+        axios.get(url)
+        .then(response =>{
+            this.setState({employeeData:response.data})
+            Cookies.set('employeeData', JSON.stringify(response.data))
+        })
+        .catch(error =>{
+            toast.error("Failed to fetch Vehicle Data");
+        })
+    }
+    componentDidMount(){
+        this.getEmployeeData();
+        
     }
 
     deleteVehicle = (id) => {

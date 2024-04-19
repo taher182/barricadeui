@@ -20,6 +20,7 @@ class AddUser extends React.Component{
             formTitle:'Add User',
             buttonText:'Add',
             superUser:false,
+            ListUserData:false
         }
     }
     handleChange = (e) => {
@@ -73,6 +74,7 @@ class AddUser extends React.Component{
                     superUser: superUser
                 };
                 this.props.onUpdateUserData(updatedUser);
+                this.setState({ListUserData:true, addUser:false})
             })
             .catch(error => {
                 // toast.error("failed to update user");
@@ -134,6 +136,9 @@ class AddUser extends React.Component{
     render(){
         return(
             <>
+            {this.state.ListUserData && 
+            <ListUserData />
+            }
             {this.state.addUser && 
               <div className='container align-items-center justify-content-center d-flex ' style={{ minHeight: '75vh' }}>
               <div className='card p-4' style={{ width: '400px' }}>

@@ -1,7 +1,6 @@
 import React from 'react';
 import Header from '../header';
 import Footer from '../footer';
-import axios from 'axios';
 import BASE_URL from '../config';
 import {toast, ToastContainer} from 'react-toastify';
 import { Navigate } from 'react-router-dom'
@@ -32,30 +31,7 @@ class Home extends React.Component{
     handleEdit = () =>{
         this.setState({home:false, edit:true})
     }
-    getEmployeeData = () =>{
-        // e.preventDefault();
-        let url = `${BASE_URL}/employee`
-        axios.get(url)
-        .then(response =>{
-            this.setState({employeeData:response.data})
-            Cookies.set('employeeData', JSON.stringify(response.data))
-        })
-        .catch(error =>{
-            toast.error("Failed to fetch Vehicle Data");
-        })
-    }
-    getUserData = () =>{
-        // e.preventDefault();
-        let url = `${BASE_URL}/user`
-        axios.get(url)
-        .then(response =>{
-            this.setState({userData:response.data})
-            Cookies.set('userData', JSON.stringify(response.data))
-        })
-        .catch(error =>{
-            toast.error("Failed to fetch user Data");
-        })
-    }
+   
     checkData = () =>{
         
 
@@ -65,8 +41,8 @@ class Home extends React.Component{
         }
     }
     componentDidMount(){
-        this.getEmployeeData();
-        this.getUserData();
+        // this.getEmployeeData();
+        // this.getUserData();
         this.checkData();
         Cookies.set('userData', JSON.stringify(this.state.userData));
     }
@@ -164,12 +140,12 @@ class Home extends React.Component{
                     <div className='w-100'></div>
                     {this.state.home &&  
                     <div className='col'>
-                        <ListData employeeData={this.state.employeeData} />
+                        <ListData />
                     </div>
                    }
                      {this.state.listUsers &&  
                     <div className='col'>
-                        <ListUserData userData={this.state.userData} />
+                        <ListUserData />
                     </div>
                    }
                    {this.state.edit && 

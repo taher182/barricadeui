@@ -11,18 +11,30 @@ class ListUserData extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            userData: this.props.userData, // Initialize state with props
+            userData: [], // Initialize state with props
             list:true,
             edit:false,
             id:''
         };
     }
-    componentDidUpdate(prevProps) {
-        if (prevProps.userData !== this.props.userData) {
-            this.setState({ userData: this.props.userData });
-        }
+    
+
+    getUserData = () =>{
+        // e.preventDefault();
+        let url = `${BASE_URL}/user`
+        axios.get(url)
+        .then(response =>{
+            this.setState({userData:response.data})
+        })
+        .catch(error =>{
+            toast.error("Failed to fetch user Data");
+        })
     }
 
+    componentDidMount(){
+        this.getUserData();
+        
+    }
     deleteUser = (id) => {
         // e.preventDefault();
         let url = `${BASE_URL}/user/${id}`
