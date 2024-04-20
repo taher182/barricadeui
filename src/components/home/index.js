@@ -11,7 +11,8 @@ import AddVehicle from '../addVehicle';
 import ListUserData from '../listUserData';
 import Cookies from 'js-cookie';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faPlus, faCar, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faPlus, faCar, faSignOutAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
+import TesseractVideoRecognition from '../tesseractVideoRecognition';
 class Home extends React.Component{
     constructor(props){
         super(props);
@@ -25,7 +26,8 @@ class Home extends React.Component{
             listUsers:false,
             employeeData:[],
             userData:[],
-            toLogin:false
+            toLogin:false,
+            camera:false
         }
     }
     handleEdit = () =>{
@@ -55,16 +57,19 @@ class Home extends React.Component{
     }
     
     addUser = () =>{
-        this.setState({home:false, addUser:true, addVehicle:false, listUsers:false});
+        this.setState({home:false, addUser:true, addVehicle:false, listUsers:false, camera:false});
     }
     listUsers = () =>{
-        this.setState({home:false, addUser:false, addVehicle:false,listUsers:true});
+        this.setState({home:false, addUser:false, addVehicle:false,listUsers:true, camera:false});
     }
     listVehicles = () =>{
-        this.setState({home:true, addUser:false, addVehicle:false,listUsers:false});
+        this.setState({home:true, addUser:false, addVehicle:false,listUsers:false, camera:false});
+    }
+    textRecognition = () =>{
+        this.setState({home:false, addUser:false, addVehicle:false,listUsers:false, camera:true});
     }
     addVehicle = () =>{
-        this.setState({home:false, addUser:false, addVehicle:true, listUsers:false});
+        this.setState({home:false, addUser:false, addVehicle:true, listUsers:false, camera:false});
     }
 
     handleAddVehicleBack = () => {
@@ -123,6 +128,8 @@ class Home extends React.Component{
                         <center>
                         <button className='btn btn-primary m-2' onClick={this.addVehicle}> <FontAwesomeIcon icon={faPlus} /></button>
                         <button className='btn btn-secondary m-2'  onClick={this.listVehicles}><FontAwesomeIcon icon={faCar} /></button>
+                        <button className='btn btn-secondary m-2'  onClick={this.textRecognition}><FontAwesomeIcon icon={faCamera} /></button>
+
                         {this.state.superUser ==='true' && 
 
                         <>
@@ -142,6 +149,9 @@ class Home extends React.Component{
                     <div className='col'>
                         <ListData />
                     </div>
+                   }
+                   {this.state.camera &&
+                    <TesseractVideoRecognition />
                    }
                      {this.state.listUsers &&  
                     <div className='col'>
