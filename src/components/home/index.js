@@ -122,7 +122,7 @@ class Home extends React.Component{
             <ToastContainer />
             <Header />
             {this.state.toLogin && <Navigate to='/' />}
-           <div className='container mt-5'>
+           <div className='container-fluid mt-5'>
                 <div className='row'>
                     <div className='col justify-content-center align-items-center mt-4'>
                         <center>
