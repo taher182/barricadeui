@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import Tesseract from 'tesseract.js';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 class TesseractVideoRecognition extends Component {
   constructor(props) {
@@ -104,6 +106,12 @@ class TesseractVideoRecognition extends Component {
 
       // Log the extracted text to the console
       console.log('Extracted Text:', text);
+      
+      // Display toast notification for the identified text
+      toast.info(`Identified Text: ${text}`, {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 3000
+      });
 
       this.formatCheckAndSendToApi(text, imageDataUrl); // Pass the recognized text and image data to check and send to API
     } catch (error) {
@@ -126,6 +134,7 @@ class TesseractVideoRecognition extends Component {
 
     return (
       <div style={{ textAlign: 'center' }}>
+        <ToastContainer />
         {error && <div>Error: {error}</div>} {/* Display error message */}
         <video ref={this.videoRef} width="480" height="360" style={{ maxWidth: '100%', borderRadius: '10px' }} />
         {cameras.length > 1 && (
