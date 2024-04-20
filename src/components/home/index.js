@@ -128,7 +128,7 @@ class Home extends React.Component{
                         <center>
                         <button className='btn btn-primary m-2' onClick={this.addVehicle}> <FontAwesomeIcon icon={faPlus} /></button>
                         <button className='btn btn-secondary m-2'  onClick={this.listVehicles}><FontAwesomeIcon icon={faCar} /></button>
-                        <button className='btn btn-secondary m-2'  onClick={this.textRecognition}><FontAwesomeIcon icon={faCamera} /></button>
+                        <button className='btn btn-info m-2'  onClick={this.textRecognition}><FontAwesomeIcon icon={faCamera} /></button>
 
                         {this.state.superUser ==='true' && 
 
