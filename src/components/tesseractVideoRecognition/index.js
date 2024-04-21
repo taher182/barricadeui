@@ -7,11 +7,11 @@ class TesseractVideoRecognition extends Component {
   constructor(props) {
     super(props);
     this.videoRef = React.createRef();
-    this.stream = null; // Track the stream object
+    this.stream = null;
     this.state = {
-      error: null, // Add error state
-      cameras: [], // Array to store available cameras
-      selectedCamera: null // Selected camera
+      error: null,
+      cameras: [],
+      selectedCamera: null
     };
   }
 
@@ -23,7 +23,7 @@ class TesseractVideoRecognition extends Component {
 
   componentWillUnmount() {
     clearInterval(this.intervalId);
-    this.stopVideoStream(); // Stop the video stream when the component unmounts
+    this.stopVideoStream();
   }
 
   loadCameras = () => {
@@ -49,19 +49,19 @@ class TesseractVideoRecognition extends Component {
 
     navigator.mediaDevices.getUserMedia(constraints)
       .then((stream) => {
-        this.stream = stream; // Store the stream object
+        this.stream = stream;
         this.videoRef.current.srcObject = stream;
         this.videoRef.current.play();
       })
       .catch((error) => {
         console.error('Error accessing camera:', error);
-        this.setState({ error: 'Error accessing camera' }); // Set error state
+        this.setState({ error: 'Error accessing camera' });
       });
   };
 
   stopVideoStream = () => {
     if (this.stream) {
-      this.stream.getTracks().forEach(track => track.stop()); // Stop all tracks in the stream
+      this.stream.getTracks().forEach(track => track.stop());
     }
   };
 
@@ -81,50 +81,42 @@ class TesseractVideoRecognition extends Component {
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageDataUrl = canvas.toDataURL('image/jpeg'); // Convert image to base64 data URL
+      const imageDataUrl = canvas.toDataURL('image/jpeg');
 
-      // Log the captured image data to the console
-      // console.log('Captured Image Data:', imageDataUrl);
-
-      this.processImage(imageDataUrl); // Process the captured image
+      this.processImage(imageDataUrl);
     } catch (error) {
       console.error('Error capturing image:', error);
-      this.setState({ error: 'Error capturing image' }); // Set error state
+      this.setState({ error: 'Error capturing image' });
     }
   };
 
   processImage = async (imageDataUrl) => {
     try {
       const { data: { text } } = await Tesseract.recognize(imageDataUrl, 'eng', {
-        // Tesseract.js configuration options
-        lang: 'eng', // Language: English
-        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', // Whitelist characters to improve accuracy
-        psm: 6, // Page segmentation mode: Assume a single uniform block of text
-        enhance: true, // Enable text enhancement for better recognition
-        preserve_interword_spaces: true, // Preserve interword spaces for better text layout
+        lang: 'eng',
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+        psm: 6, // Assume a single uniform block of text
+        enhance: true, // Enable text enhancement
+        preserve_interword_spaces: true // Preserve interword spaces
       });
 
-      // Log the extracted text to the console
       console.log('Extracted Text:', text);
       
-      // Display toast notification for the identified text
       toast.info(`Identified Text: ${text}`, {
         position: toast.POSITION.TOP_CENTER,
         autoClose: 3000
       });
 
-      this.formatCheckAndSendToApi(text, imageDataUrl); // Pass the recognized text and image data to check and send to API
+      this.formatCheckAndSendToApi(text, imageDataUrl);
     } catch (error) {
       console.error('Error performing OCR:', error);
-      this.setState({ error: 'Error performing OCR' }); // Set error state
+      this.setState({ error: 'Error performing OCR' });
     }
   };
 
   formatCheckAndSendToApi = (text, imageDataUrl) => {
-    // Example regex pattern for number plate format: xx88 xx8888
     const regexPattern = /^[A-Z]{2}\d{2}\s[A-Z]{2}\d{4}$/;
     if (regexPattern.test(text)) {
-      // Send text and image data to API
       console.log('Sending text and image data to API:', text, imageDataUrl);
     }
   };
@@ -135,7 +127,7 @@ class TesseractVideoRecognition extends Component {
     return (
       <div style={{ textAlign: 'center' }}>
         <ToastContainer />
-        {error && <div>Error: {error}</div>} {/* Display error message */}
+        {error && <div>Error: {error}</div>}
         <video ref={this.videoRef} width="480" height="360" style={{ maxWidth: '100%', borderRadius: '10px' }} />
         {cameras.length > 1 && (
           <select value={selectedCamera} onChange={this.handleCameraChange}>
