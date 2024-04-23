@@ -12,7 +12,7 @@ import ListUserData from '../listUserData';
 import Cookies from 'js-cookie';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faPlus, faCar, faSignOutAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
-import TesseractVideoRecognition from '../tesseractVideoRecognition';
+import PlateRecognizerStream from '../plateRecognizerStream';
 class Home extends React.Component{
     constructor(props){
         super(props);
@@ -151,7 +151,7 @@ class Home extends React.Component{
                     </div>
                    }
                    {this.state.camera &&
-                    <TesseractVideoRecognition />
+                    <PlateRecognizerStream />
                    }
                      {this.state.listUsers &&  
                     <div className='col'>
