@@ -1,9 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import * as tf from '@tensorflow/tfjs';
-import * as cocoSsd from '@tensorflow-models/coco-ssd';
 import Tesseract from 'tesseract.js';
+
 
 const PlateRecognizerStream = () => {
   const videoRef = useRef(null);
@@ -12,38 +11,12 @@ const PlateRecognizerStream = () => {
   const [selectedCamera, setSelectedCamera] = useState(null);
 
   useEffect(() => {
-    const getCameraDevices = async () => {
-      try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cameras = devices.filter(device => device.kind === 'videoinput');
-        setCameraDevices(cameras);
-        if (cameras.length > 0) {
-          setSelectedCamera(cameras[0].deviceId);
-        }
-      } catch (error) {
-        console.error('Error enumerating camera devices:', error);
-        toast.error('Error enumerating camera devices');
-      }
-    };
-
-    getCameraDevices();
-  }, []);
-
-  useEffect(() => {
     const startVideoStream = async () => {
-      if (!selectedCamera) return;
-      
       try {
-        const constraints = {
-          video: { deviceId: selectedCamera }
-        };
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedCamera } });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.play();
-        } else {
-          console.error('Video element not available');
-          toast.error('Video element not available');
         }
       } catch (error) {
         console.error('Error accessing camera:', error);
@@ -65,82 +38,82 @@ const PlateRecognizerStream = () => {
   }, [selectedCamera]);
 
   useEffect(() => {
-    const loadModel = async () => {
+    const getCameraDevices = async () => {
       try {
-        await tf.ready();
-        const model = await cocoSsd.load();
-        console.log('Model loaded successfully:', model);
-        detectObjects(model);
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+        setCameraDevices(cameras);
+        if (cameras.length > 0) {
+          setSelectedCamera(cameras[0].deviceId);
+        }
       } catch (error) {
-        console.error('Error loading model:', error);
-        toast.error('Error loading model');
+        console.error('Error enumerating camera devices:', error);
+        toast.error('Error enumerating camera devices');
       }
     };
 
-    const detectObjects = async (model) => {
-      const video = videoRef.current;
-      if (!video || !video.srcObject) {
-        console.error('Video stream not available');
-        toast.error('Video stream not available');
-        return;
-      }
-
-      const stream = video.srcObject;
-      const detectFrame = async () => {
-        const predictions = await model.detect(video);
-        const plates = predictions
-          .filter(prediction => ['car', 'truck', 'bicycle'].includes(prediction.class))
-          .map(prediction => prediction.bbox);
-
-        if (plates.length > 0) {
-          recognizePlates(plates);
-        }
-        requestAnimationFrame(detectFrame);
-      };
-
-      detectFrame();
-    };
-
-    const recognizePlates = async (plates) => {
-      for (const plate of plates) {
-        const canvas = document.createElement('canvas');
-        if (plate[2] === 0 || plate[3] === 0) {
-          console.error('Invalid plate dimensions:', plate);
-          toast.error('Invalid plate dimensions');
-          continue;
-        }
-        canvas.width = plate[2];
-        canvas.height = plate[3];
-
-        const context = canvas.getContext('2d');
-        context.drawImage(videoRef.current, plate[0], plate[1], plate[2], plate[3], 0, 0, plate[2], plate[3]);
-
-        const imageData = canvas.toDataURL('image/jpeg');
-        const { data: { text } } = await Tesseract.recognize(imageData);
-        console.log('License Plate:', text);
-        toast.success(`Detected License Plate: ${text}`);
-        setRecognizedPlates(prevPlates => [...prevPlates, text]);
-      }
-    };
-
-    loadModel();
+    getCameraDevices();
   }, []);
 
   const handleCameraChange = (event) => {
     setSelectedCamera(event.target.value);
   };
 
+  const recognizePlate = async (imageData) => {
+    try {
+      const { data: { text } } = await Tesseract.recognize(imageData, 'eng', {
+        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      });
+      console.log('Recognized Plate:', text);
+      toast.success(`Detected License Plate: ${text}`);
+      setRecognizedPlates(prevPlates => [...prevPlates, text]);
+    } catch (error) {
+      console.error('Error recognizing plate:', error);
+      toast.error('Error recognizing plate');
+    }
+  };
+
+  const processFrame = async () => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+  
+      const context = canvas.getContext('2d');
+      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+  
+      const imageData = canvas.toDataURL('image/jpeg'); // Convert canvas to base64 image
+      recognizePlate(imageData);
+    } catch (error) {
+      console.error('Error processing frame:', error);
+      toast.error('Error processing frame');
+    }
+  };
+  
+  useEffect(() => {
+    const intervalId = setInterval(processFrame, 8000); // Adjust interval as needed
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
-    <div>
-      <div>
-        <label htmlFor="cameraSelect">Select Camera:</label>
-        <select id="cameraSelect" value={selectedCamera} onChange={handleCameraChange}>
-          {cameraDevices.map(device => (
-            <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
-          ))}
-        </select>
+    <div className="container-fluid">
+      <div className="row justify-content-center">
+        <div className="col-md-8">
+          <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
+            <video ref={videoRef} className="position-absolute top-0 start-0 w-100 h-100 mb-0" autoPlay />
+          </div>
+        </div>
       </div>
-      <video ref={videoRef} width="640" height="480" autoPlay />
+      <div className="row justify-content-center mt-3">
+        <div className="col-md-4">
+          {/* <label htmlFor="cameraSelect" className="form-label">Select Camera:</label> */}
+          <select id="cameraSelect" className="form-select mb-5 mt-1" value={selectedCamera} onChange={handleCameraChange}>
+            {cameraDevices.map(device => (
+              <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
+            ))}import 'bootstrap/dist/css/bootstrap.min.css';
+          </select>
+        </div>
+      </div>
       <ToastContainer />
     </div>
   );
