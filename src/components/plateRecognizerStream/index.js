@@ -10,6 +10,36 @@ const PlateRecognizerStream = () => {
   const [recognizedPlates, setRecognizedPlates] = useState([]);
 
   useEffect(() => {
+    const startVideoStream = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        } else {
+          console.error('Video element not available');
+          toast.error('Video element not available');
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        toast.error('Error accessing camera');
+      }
+    };
+
+    startVideoStream();
+
+    return () => {
+      if (videoRef.current && videoRef.current.srcObject) {
+        const stream = videoRef.current.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => {
+          track.stop();
+        });
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const loadModel = async () => {
       try {
         await tf.ready();
@@ -63,22 +93,12 @@ const PlateRecognizerStream = () => {
         const imageData = canvas.toDataURL('image/jpeg');
         const { data: { text } } = await Tesseract.recognize(imageData);
         console.log('License Plate:', text);
-        toast.success(`License Plate: ${text}`);
+        toast.success(`Detected License Plate: ${text}`);
         setRecognizedPlates(prevPlates => [...prevPlates, text]);
       }
     };
 
     loadModel();
-
-    return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => {
-          track.stop();
-        });
-      }
-    };
   }, []);
 
   return (
