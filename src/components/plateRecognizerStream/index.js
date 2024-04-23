@@ -8,11 +8,36 @@ import Tesseract from 'tesseract.js';
 const PlateRecognizerStream = () => {
   const videoRef = useRef(null);
   const [recognizedPlates, setRecognizedPlates] = useState([]);
+  const [cameraDevices, setCameraDevices] = useState([]);
+  const [selectedCamera, setSelectedCamera] = useState(null);
+
+  useEffect(() => {
+    const getCameraDevices = async () => {
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+        setCameraDevices(cameras);
+        if (cameras.length > 0) {
+          setSelectedCamera(cameras[0].deviceId);
+        }
+      } catch (error) {
+        console.error('Error enumerating camera devices:', error);
+        toast.error('Error enumerating camera devices');
+      }
+    };
+
+    getCameraDevices();
+  }, []);
 
   useEffect(() => {
     const startVideoStream = async () => {
+      if (!selectedCamera) return;
+      
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const constraints = {
+          video: { deviceId: selectedCamera }
+        };
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.play();
@@ -37,7 +62,7 @@ const PlateRecognizerStream = () => {
         });
       }
     };
-  }, []);
+  }, [selectedCamera]);
 
   useEffect(() => {
     const loadModel = async () => {
@@ -64,7 +89,7 @@ const PlateRecognizerStream = () => {
       const detectFrame = async () => {
         const predictions = await model.detect(video);
         const plates = predictions
-          .filter(prediction => prediction.class === 'car' || prediction.class === 'truck')
+          .filter(prediction => ['car', 'truck', 'bicycle'].includes(prediction.class))
           .map(prediction => prediction.bbox);
 
         if (plates.length > 0) {
@@ -101,8 +126,20 @@ const PlateRecognizerStream = () => {
     loadModel();
   }, []);
 
+  const handleCameraChange = (event) => {
+    setSelectedCamera(event.target.value);
+  };
+
   return (
     <div>
+      <div>
+        <label htmlFor="cameraSelect">Select Camera:</label>
+        <select id="cameraSelect" value={selectedCamera} onChange={handleCameraChange}>
+          {cameraDevices.map(device => (
+            <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
+          ))}
+        </select>
+      </div>
       <video ref={videoRef} width="640" height="480" autoPlay />
       <ToastContainer />
     </div>
