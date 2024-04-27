@@ -58,13 +58,15 @@ const PlateRecognizerStream = () => {
 
   const recognizePlate = async (imageData) => {
     try {
+      const formData = new FormData();
+      formData.append('upload', imageData); // Add the image data to the form-data object
+  
       const response = await fetch('https://api.platerecognizer.com/v1/plate-reader/', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Token 465ceb1e87d760bfd0112914577fb8671a54a45b', // Replace with your Plate Recognizer API token
+          Authorization: 'Token 465ceb1e87d760bfd0112914577fb8671a54a45b', // Replace with your Plate Recognizer API token
         },
-        body: JSON.stringify({ image: imageData }),
+        body: formData, // Pass the form-data object as the request body
       });
       
       if (response.ok) {
@@ -79,7 +81,6 @@ const PlateRecognizerStream = () => {
       toast.error('Error recognizing plate');
     }
   };
-
   const captureFrameAndRecognizePlate = async () => {
     try {
       const canvas = document.createElement('canvas');
