@@ -1,12 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import Tesseract from 'tesseract.js';
-
 
 const PlateRecognizerStream = () => {
   const videoRef = useRef(null);
-  const [recognizedPlates, setRecognizedPlates] = useState([]);
   const [cameraDevices, setCameraDevices] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
 
@@ -61,19 +58,29 @@ const PlateRecognizerStream = () => {
 
   const recognizePlate = async (imageData) => {
     try {
-      const { data: { text } } = await Tesseract.recognize(imageData, 'eng', {
-        tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',
+      const response = await fetch('https://api.platerecognizer.com/v1/plate-reader/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token 465ceb1e87d760bfd0112914577fb8671a54a45b', // Replace with your Plate Recognizer API token
+        },
+        body: JSON.stringify({ image: imageData }),
       });
-      console.log('Recognized Plate:', text);
-      toast.success(`Detected License Plate: ${text}`);
-      setRecognizedPlates(prevPlates => [...prevPlates, text]);
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('License Plate:', data.results[0].plate);
+        toast.success(`Detected License Plate: ${data.results[0].plate}`);
+      } else {
+        throw new Error('Failed to recognize license plate');
+      }
     } catch (error) {
       console.error('Error recognizing plate:', error);
       toast.error('Error recognizing plate');
     }
   };
 
-  const processFrame = async () => {
+  const captureFrameAndRecognizePlate = async () => {
     try {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
@@ -85,13 +92,13 @@ const PlateRecognizerStream = () => {
       const imageData = canvas.toDataURL('image/jpeg'); // Convert canvas to base64 image
       recognizePlate(imageData);
     } catch (error) {
-      console.error('Error processing frame:', error);
-      toast.error('Error processing frame');
+      console.error('Error capturing frame and recognizing plate:', error);
+      toast.error('Error capturing frame and recognizing plate');
     }
   };
   
   useEffect(() => {
-    const intervalId = setInterval(processFrame, 8000); // Adjust interval as needed
+    const intervalId = setInterval(captureFrameAndRecognizePlate, 8000); // Adjust interval as needed
     return () => clearInterval(intervalId);
   }, []);
 
@@ -100,17 +107,17 @@ const PlateRecognizerStream = () => {
       <div className="row justify-content-center">
         <div className="col-md-8">
           <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
-            <video ref={videoRef} className="position-absolute top-0 start-0 w-100 h-100 mb-0" autoPlay />
+            <video ref={videoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
           </div>
         </div>
       </div>
       <div className="row justify-content-center mt-3">
         <div className="col-md-4">
-          {/* <label htmlFor="cameraSelect" className="form-label">Select Camera:</label> */}
-          <select id="cameraSelect" className="form-select mb-5 mt-1" value={selectedCamera} onChange={handleCameraChange}>
+          <label htmlFor="cameraSelect" className="form-label">Select Camera:</label>
+          <select id="cameraSelect" className="form-select" value={selectedCamera} onChange={handleCameraChange}>
             {cameraDevices.map(device => (
               <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
-            ))}import 'bootstrap/dist/css/bootstrap.min.css';
+            ))}
           </select>
         </div>
       </div>
