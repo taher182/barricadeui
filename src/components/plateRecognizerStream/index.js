@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import BASE_URL from '../config';
+import axios from 'axios';
 const PlateRecognizerStream = () => {
   const videoRef = useRef(null);
   const [cameraDevices, setCameraDevices] = useState([]);
@@ -56,6 +57,22 @@ const PlateRecognizerStream = () => {
     setSelectedCamera(event.target.value);
   };
 
+  const checkNumberPlate = (number_plate) =>{
+    // e.preventDefault();
+    let formData = new FormData();
+    formData.append('number_plate',number_plate);
+
+    let url =  `${BASE_URL}/checknumberplate`
+    axios.post(url,formData)
+    .then(response =>{
+        toast.success("Licence Plate exist in database");
+        
+    })
+    .catch(error =>{
+        toast.warning("Licence Plate not found");
+    })
+  }
+
   const recognizePlate = async (imageData) => {
     try {
       const formData = new FormData();
@@ -72,7 +89,8 @@ const PlateRecognizerStream = () => {
       if (response.ok) {
         const data = await response.json();
         console.log('License Plate:', data.results[0].plate);
-        toast.success(`Detected License Plate: ${data.results[0].plate}`);
+        toast.success(`Detected License Plate: ${data.results[0].plate.toUpperCase()}`);
+        checkNumberPlate(data.results[0].plate.toUpperCase());
       } else {
         throw new Error('Failed to recognize license plate');
       }
