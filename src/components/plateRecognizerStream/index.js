@@ -12,14 +12,24 @@ const PlateRecognizerStream = () => {
   const [usbDevice, setUsbDevice] = useState(null);
 
 //  const MCU_BASE_URL = 'http://192.168.170.89';
-  const sendSignalToNodeMCU = async () => {
-    try {
-      await axios.get('http://192.168.170.89/signal');
-      console.log('Signal sent to NodeMCU');
-    } catch (error) {
-      console.error('Error sending signal to NodeMCU:', error);
-    }
-  };
+
+
+const sendSignalToNodeMCU = () => {
+  let formData = new FormData();
+  formData.append('message', 'this is demo');
+  let url = 'http://192.168.170.89/signal';
+  
+  axios.post(url, formData)
+    .then(response => {
+      console.log(response.data); // Log response data for debugging
+      toast.success('Signal sent');
+    })
+    .catch(error => {
+      console.error('Error sending signal:', error);
+      toast.error('Failed to send signal');
+    });
+};
+
   
   // Function to start video stream from selected camera
   useEffect(() => {
@@ -83,6 +93,7 @@ const PlateRecognizerStream = () => {
     axios.post(url,formData)
     .then(response =>{
         toast.success("Licence Plate exist in database");
+        sendSignalToNodeMCU();
         
     })
     .catch(error =>{
