@@ -3,11 +3,35 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BASE_URL from '../config';
 import axios from 'axios';
+// import SerialPort from 'serialport';
 const PlateRecognizerStream = () => {
   const videoRef = useRef(null);
   const [cameraDevices, setCameraDevices] = useState([]);
   const [selectedCamera, setSelectedCamera] = useState(null);
+  const [usbDevice, setUsbDevice] = useState(null);
 
+ 
+  useEffect(() => {
+    // Function to connect to USB device
+    const connectToDevice = async () => {
+      try {
+        const device = await navigator.usb.requestDevice({ filters: [{ vendorId: 0x2341 }] });
+        console.log('Connected to USB device:', device);
+        await device.open();
+        await device.selectConfiguration(1);
+        await device.claimInterface(0);
+        setUsbDevice(device);
+        console.log('usb device after set',usbDevice);
+      } catch (error) {
+        console.error('Error connecting to USB device:', error);
+        toast.error('Error connecting to USB device');
+      }
+    };
+
+    connectToDevice(); // Connect to USB device when component mounts
+  }, []);
+
+  // Function to start video stream from selected camera
   useEffect(() => {
     const startVideoStream = async () => {
       try {
@@ -22,8 +46,9 @@ const PlateRecognizerStream = () => {
       }
     };
 
-    startVideoStream();
+    startVideoStream(); // Start video stream
 
+    // Cleanup function to stop video stream
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject;
@@ -35,6 +60,7 @@ const PlateRecognizerStream = () => {
     };
   }, [selectedCamera]);
 
+  // Function to get available camera devices
   useEffect(() => {
     const getCameraDevices = async () => {
       try {
@@ -50,9 +76,10 @@ const PlateRecognizerStream = () => {
       }
     };
 
-    getCameraDevices();
+    getCameraDevices(); // Get available camera devices when component mounts
   }, []);
 
+  // Function to handle camera change
   const handleCameraChange = (event) => {
     setSelectedCamera(event.target.value);
   };
@@ -71,8 +98,26 @@ const PlateRecognizerStream = () => {
     .catch(error =>{
         toast.warning("Licence Plate not found");
     })
-  }
+  };
+ 
+  const sendSignalToArduino = async () => {
+    console.log("This is USB device", usbDevice);
+    if (!usbDevice) {
+      console.error('No USB device connected');
+      return;
+    }
 
+    try {
+      // Example: Sending a signal to Arduino by writing data to an endpoint
+      const encoder = new TextEncoder();
+      const data = encoder.encode('Hello Arduino!');
+      await usbDevice.transferOut(2, data); // Endpoint number may vary
+      console.log('Signal sent to Arduino');
+    } catch (error) {
+      console.error('Error sending signal to Arduino:', error);
+    }
+  };
+ 
   const recognizePlate = async (imageData) => {
     try {
       const formData = new FormData();
@@ -91,6 +136,7 @@ const PlateRecognizerStream = () => {
         console.log('License Plate:', data.results[0].plate);
         toast.success(`Detected License Plate: ${data.results[0].plate.toUpperCase()}`);
         checkNumberPlate(data.results[0].plate.toUpperCase());
+        sendSignalToArduino();
       } else {
         throw new Error('Failed to recognize license plate');
       }
@@ -121,6 +167,7 @@ const PlateRecognizerStream = () => {
     return () => clearInterval(intervalId);
   }, []);
 
+  
   return (
     <div className="container-fluid">
       <div className="row justify-content-center">
