@@ -3,6 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import BASE_URL from '../config';
 import axios from 'axios';
+
 // import SerialPort from 'serialport';
 const PlateRecognizerStream = () => {
   const videoRef = useRef(null);
@@ -10,27 +11,16 @@ const PlateRecognizerStream = () => {
   const [selectedCamera, setSelectedCamera] = useState(null);
   const [usbDevice, setUsbDevice] = useState(null);
 
- 
-  useEffect(() => {
-    // Function to connect to USB device
-    const connectToDevice = async () => {
-      try {
-        const device = await navigator.usb.requestDevice({ filters: [{ vendorId: 0x2341 }] });
-        console.log('Connected to USB device:', device);
-        await device.open();
-        await device.selectConfiguration(1);
-        await device.claimInterface(0);
-        setUsbDevice(device);
-        console.log('usb device after set',usbDevice);
-      } catch (error) {
-        console.error('Error connecting to USB device:', error);
-        toast.error('Error connecting to USB device');
-      }
-    };
-
-    connectToDevice(); // Connect to USB device when component mounts
-  }, []);
-
+//  const MCU_BASE_URL = 'http://192.168.170.89';
+  const sendSignalToNodeMCU = async () => {
+    try {
+      await axios.get('http://192.168.170.89/signal');
+      console.log('Signal sent to NodeMCU');
+    } catch (error) {
+      console.error('Error sending signal to NodeMCU:', error);
+    }
+  };
+  
   // Function to start video stream from selected camera
   useEffect(() => {
     const startVideoStream = async () => {
@@ -100,23 +90,23 @@ const PlateRecognizerStream = () => {
     })
   };
  
-  const sendSignalToArduino = async () => {
-    console.log("This is USB device", usbDevice);
-    if (!usbDevice) {
-      console.error('No USB device connected');
-      return;
-    }
+  // const sendSignalToArduino = async () => {
+  //   console.log("This is USB device", usbDevice);
+  //   if (!usbDevice) {
+  //     console.error('No USB device connected');
+  //     return;
+  //   }
 
-    try {
-      // Example: Sending a signal to Arduino by writing data to an endpoint
-      const encoder = new TextEncoder();
-      const data = encoder.encode('Hello Arduino!');
-      await usbDevice.transferOut(2, data); // Endpoint number may vary
-      console.log('Signal sent to Arduino');
-    } catch (error) {
-      console.error('Error sending signal to Arduino:', error);
-    }
-  };
+  //   try {
+  //     // Example: Sending a signal to Arduino by writing data to an endpoint
+  //     const encoder = new TextEncoder();
+  //     const data = encoder.encode('Hello Arduino!');
+  //     await usbDevice.transferOut(1, data); // Endpoint number may vary
+  //     console.log('Signal sent to Arduino');
+  //   } catch (error) {
+  //     console.error('Error sending signal to Arduino:', error);
+  //   }
+  // };
  
   const recognizePlate = async (imageData) => {
     try {
@@ -136,7 +126,7 @@ const PlateRecognizerStream = () => {
         console.log('License Plate:', data.results[0].plate);
         toast.success(`Detected License Plate: ${data.results[0].plate.toUpperCase()}`);
         checkNumberPlate(data.results[0].plate.toUpperCase());
-        sendSignalToArduino();
+        sendSignalToNodeMCU();
       } else {
         throw new Error('Failed to recognize license plate');
       }
