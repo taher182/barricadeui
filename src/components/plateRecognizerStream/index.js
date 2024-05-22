@@ -9,70 +9,52 @@ const PlateRecognizerStream = () => {
   const exitVideoRef = useRef(null);
   const [entryCamera, setEntryCamera] = useState(null);
   const [exitCamera, setExitCamera] = useState(null);
-  const [entryStreamActive, setEntryStreamActive] = useState(false);
-  const [exitStreamActive, setExitStreamActive] = useState(false);
-  const [entryDisabled, setEntryDisabled] = useState(false);
-  const [exitDisabled, setExitDisabled] = useState(false);
-
+  const [streamActive, setStreamActive] = useState(false);
   const [movementDetected, setMovementDetected] = useState(false);
+  const [cameraDevices, setCameraDevices] = useState([]);
 
   useEffect(() => {
-    const startEntryStream = async () => {
+    const getCameraDevices = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: entryCamera } });
-        if (entryVideoRef.current) {
-          entryVideoRef.current.srcObject = stream;
-          entryVideoRef.current.play();
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cameras = devices.filter(device => device.kind === 'videoinput');
+        setCameraDevices(cameras);
+        if (cameras.length > 0) {
+          setEntryCamera(cameras[0].deviceId);
+          if (cameras.length > 1) {
+            setExitCamera(cameras[1].deviceId);
+          }
         }
       } catch (error) {
-        console.error('Error accessing entry camera:', error);
-        toast.error('Error accessing entry camera');
+        console.error('Error enumerating camera devices:', error);
+        toast.error('Error enumerating camera devices');
       }
     };
 
-    if (entryStreamActive) {
-      startEntryStream();
-    }
+    getCameraDevices(); // Get available camera devices when component mounts
+  }, []);
 
-    return () => {
-      if (entryVideoRef.current && entryVideoRef.current.srcObject) {
-        const stream = entryVideoRef.current.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => {
-          track.stop();
-        });
-      }
-    };
-  }, [entryCamera, entryStreamActive]);
-
-  useEffect(() => {
-    const startExitStream = async () => {
+  const toggleStream = async () => {
+    if (streamActive) {
+      entryVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      exitVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    } else {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: exitCamera } });
-        if (exitVideoRef.current) {
-          exitVideoRef.current.srcObject = stream;
-          exitVideoRef.current.play();
-        }
+        const entryStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: entryCamera } });
+        entryVideoRef.current.srcObject = entryStream;
+        entryVideoRef.current.play();
+
+        const exitStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: exitCamera } });
+        exitVideoRef.current.srcObject = exitStream;
+        exitVideoRef.current.play();
+
+        setStreamActive(true);
       } catch (error) {
-        console.error('Error accessing exit camera:', error);
-        toast.error('Error accessing exit camera');
+        console.error('Error accessing cameras:', error);
+        toast.error('Error accessing cameras');
       }
-    };
-
-    if (exitStreamActive) {
-      startExitStream();
     }
-
-    return () => {
-      if (exitVideoRef.current && exitVideoRef.current.srcObject) {
-        const stream = exitVideoRef.current.srcObject;
-        const tracks = stream.getTracks();
-        tracks.forEach((track) => {
-          track.stop();
-        });
-      }
-    };
-  }, [exitCamera, exitStreamActive]);
+  };
 
   const handleEntryCameraChange = (event) => {
     setEntryCamera(event.target.value);
@@ -82,12 +64,30 @@ const PlateRecognizerStream = () => {
     setExitCamera(event.target.value);
   };
 
-  const toggleEntryStream = () => {
-    setEntryStreamActive(!entryStreamActive);
+  const handleMovementDetection = () => {
+    if (!movementDetected) {
+      setMovementDetected(true);
+      captureFrameAndRecognizePlate('entry', entryVideoRef);
+      captureFrameAndRecognizePlate('exit', exitVideoRef);
+      setTimeout(() => setMovementDetected(false), 8000);
+    }
   };
 
-  const toggleExitStream = () => {
-    setExitStreamActive(!exitStreamActive);
+  const captureFrameAndRecognizePlate = async (cameraType, videoRef) => {
+    try {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+
+      const context = canvas.getContext('2d');
+      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+
+      const imageData = canvas.toDataURL('image/jpeg');
+      recognizePlate(imageData, cameraType);
+    } catch (error) {
+      console.error('Error capturing frame and recognizing plate:', error);
+      toast.error('Error capturing frame and recognizing plate');
+    }
   };
 
   const recognizePlate = async (imageData, cameraType) => {
@@ -117,23 +117,6 @@ const PlateRecognizerStream = () => {
     }
   };
 
-  const captureFrameAndRecognizePlate = async (cameraType, videoRef) => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-
-      const context = canvas.getContext('2d');
-      context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
-      const imageData = canvas.toDataURL('image/jpeg');
-      recognizePlate(imageData, cameraType);
-    } catch (error) {
-      console.error('Error capturing frame and recognizing plate:', error);
-      toast.error('Error capturing frame and recognizing plate');
-    }
-  };
-
   const checkNumberPlate = (plate, cameraType) => {
     let formData = new FormData();
     formData.append('number_plate', plate);
@@ -144,11 +127,7 @@ const PlateRecognizerStream = () => {
       .then((response) => {
         toast.success('License Plate exists in database');
         if (cameraType === 'entry') {
-          setExitDisabled(true);
-          setTimeout(() => setExitDisabled(false), 16000);
-        } else {
-          setEntryDisabled(true);
-          setTimeout(() => setEntryDisabled(false), 16000);
+          setTimeout(() => setStreamActive(false), 16000);
         }
         sendSignalToNodeMCU();
       })
@@ -174,34 +153,6 @@ const PlateRecognizerStream = () => {
       });
   };
 
-  const handleMovementDetection = () => {
-    if (!movementDetected) {
-      setMovementDetected(true);
-      captureFrameAndRecognizePlate('entry', entryVideoRef);
-      captureFrameAndRecognizePlate('exit', exitVideoRef);
-      setTimeout(() => setMovementDetected(false), 8000);
-    }
-  };
-
-  useEffect(() => {
-    const entryIntervalId = setInterval(() => {
-      if (entryStreamActive) {
-        captureFrameAndRecognizePlate('entry', entryVideoRef);
-      }
-    }, 8000);
-
-    const exitIntervalId = setInterval(() => {
-      if (exitStreamActive) {
-        captureFrameAndRecognizePlate('exit', exitVideoRef);
-      }
-    }, 8000);
-
-    return () => {
-      clearInterval(entryIntervalId);
-      clearInterval(exitIntervalId);
-    };
-  }, [entryStreamActive, exitStreamActive]);
-
   return (
     <div className="container-fluid">
       <div className="row justify-content-center">
@@ -209,29 +160,31 @@ const PlateRecognizerStream = () => {
           <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
             <video ref={entryVideoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
           </div>
-          <button onClick={toggleEntryStream}>{entryStreamActive ? 'Stop Entry Camera' : 'Start Entry Camera'}</button>
+          <label htmlFor="entryCameraSelect" className="form-label text-light">Select Entry Camera:</label>
+          <select id="entryCameraSelect" className="form-select" value={entryCamera} onChange={handleEntryCameraChange}>
+            {cameraDevices.map(device => (
+              <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
+            ))}
+          </select>
         </div>
         <div className="col-md-6">
           <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
             <video ref={exitVideoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
           </div>
-          <button onClick={toggleExitStream}>{exitStreamActive ? 'Stop Exit Camera' : 'Start Exit Camera'}</button>
-        </div>
-      </div>
-      <div className="row justify-content-center mt-3">
-        <div className="col-md-4">
-          <label htmlFor="entryCameraSelect" className="form-label">Select Entry Camera:</label>
-          <select id="entryCameraSelect" className="form-select" value={entryCamera} onChange={handleEntryCameraChange}>
-            {/* Populate options with available camera devices */}
-          </select>
-        </div>
-        <div className="col-md-4">
-          <label htmlFor="exitCameraSelect" className="form-label">Select Exit Camera:</label>
+          <label htmlFor="exitCameraSelect" className="form-label text-light">Select Exit Camera:</label>
           <select id="exitCameraSelect" className="form-select" value={exitCamera} onChange={handleExitCameraChange}>
-            {/* Populate options with available camera devices */}
+            {cameraDevices.map(device => (
+              <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
+            ))}
           </select>
         </div>
       </div>
+      <div className="row justify-content-center mt-3 mb-5">
+        <div className="col-md-12 col-lg-12 mb-2">
+         <center> <button onClick={toggleStream} className='btn btn-info'>{streamActive ? 'Stop Cameras' : 'Start Cameras'}</button></center>
+        </div>
+      </div>
+     
       <ToastContainer />
     </div>
   );
