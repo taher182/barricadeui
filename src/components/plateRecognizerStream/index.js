@@ -22,7 +22,7 @@ const PlateRecognizerStream = () => {
         if (cameras.length > 0) {
           setEntryCamera(cameras[0].deviceId);
           if (cameras.length > 1) {
-            setExitCamera(cameras[1].deviceId); // Set exit camera to the second available camera
+            setExitCamera(cameras[1].deviceId);
           }
         }
       } catch (error) {
