@@ -4,140 +4,110 @@ import 'react-toastify/dist/ReactToastify.css';
 import BASE_URL from '../config';
 import axios from 'axios';
 
-// import SerialPort from 'serialport';
 const PlateRecognizerStream = () => {
-  const videoRef = useRef(null);
-  const [cameraDevices, setCameraDevices] = useState([]);
-  const [selectedCamera, setSelectedCamera] = useState(null);
-  const [usbDevice, setUsbDevice] = useState(null);
+  const entryVideoRef = useRef(null);
+  const exitVideoRef = useRef(null);
+  const [entryCamera, setEntryCamera] = useState(null);
+  const [exitCamera, setExitCamera] = useState(null);
+  const [entryStreamActive, setEntryStreamActive] = useState(false);
+  const [exitStreamActive, setExitStreamActive] = useState(false);
+  const [entryDisabled, setEntryDisabled] = useState(false);
+  const [exitDisabled, setExitDisabled] = useState(false);
 
-//  const MCU_BASE_URL = 'http://192.168.170.89';
+  const [movementDetected, setMovementDetected] = useState(false);
 
-
-const sendSignalToNodeMCU = () => {
-  let formData = new FormData();
-  formData.append('message', 'this is demo');
-  let url = 'http://192.168.170.89/signal';
-  
-  axios.post(url, formData)
-    .then(response => {
-      console.log(response.data); // Log response data for debugging
-      toast.success('Signal sent');
-    })
-    .catch(error => {
-      console.error('Error sending signal:', error);
-      toast.error('Failed to send signal');
-    });
-};
-
-  
-  // Function to start video stream from selected camera
   useEffect(() => {
-    const startVideoStream = async () => {
+    const startEntryStream = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedCamera } });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play();
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: entryCamera } });
+        if (entryVideoRef.current) {
+          entryVideoRef.current.srcObject = stream;
+          entryVideoRef.current.play();
         }
       } catch (error) {
-        console.error('Error accessing camera:', error);
-        toast.error('Error accessing camera');
+        console.error('Error accessing entry camera:', error);
+        toast.error('Error accessing entry camera');
       }
     };
 
-    startVideoStream(); // Start video stream
+    if (entryStreamActive) {
+      startEntryStream();
+    }
 
-    // Cleanup function to stop video stream
     return () => {
-      if (videoRef.current && videoRef.current.srcObject) {
-        const stream = videoRef.current.srcObject;
+      if (entryVideoRef.current && entryVideoRef.current.srcObject) {
+        const stream = entryVideoRef.current.srcObject;
         const tracks = stream.getTracks();
         tracks.forEach((track) => {
           track.stop();
         });
       }
     };
-  }, [selectedCamera]);
+  }, [entryCamera, entryStreamActive]);
 
-  // Function to get available camera devices
   useEffect(() => {
-    const getCameraDevices = async () => {
+    const startExitStream = async () => {
       try {
-        const devices = await navigator.mediaDevices.enumerateDevices();
-        const cameras = devices.filter(device => device.kind === 'videoinput');
-        setCameraDevices(cameras);
-        if (cameras.length > 0) {
-          setSelectedCamera(cameras[0].deviceId);
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: exitCamera } });
+        if (exitVideoRef.current) {
+          exitVideoRef.current.srcObject = stream;
+          exitVideoRef.current.play();
         }
       } catch (error) {
-        console.error('Error enumerating camera devices:', error);
-        toast.error('Error enumerating camera devices');
+        console.error('Error accessing exit camera:', error);
+        toast.error('Error accessing exit camera');
       }
     };
 
-    getCameraDevices(); // Get available camera devices when component mounts
-  }, []);
+    if (exitStreamActive) {
+      startExitStream();
+    }
 
-  // Function to handle camera change
-  const handleCameraChange = (event) => {
-    setSelectedCamera(event.target.value);
+    return () => {
+      if (exitVideoRef.current && exitVideoRef.current.srcObject) {
+        const stream = exitVideoRef.current.srcObject;
+        const tracks = stream.getTracks();
+        tracks.forEach((track) => {
+          track.stop();
+        });
+      }
+    };
+  }, [exitCamera, exitStreamActive]);
+
+  const handleEntryCameraChange = (event) => {
+    setEntryCamera(event.target.value);
   };
 
-  const checkNumberPlate = (number_plate) =>{
-    // e.preventDefault();
-    let formData = new FormData();
-    formData.append('number_plate',number_plate);
-
-    let url =  `${BASE_URL}/checknumberplate`
-    axios.post(url,formData)
-    .then(response =>{
-        toast.success("Licence Plate exist in database");
-        sendSignalToNodeMCU();
-        
-    })
-    .catch(error =>{
-        toast.warning("Licence Plate not found");
-    })
+  const handleExitCameraChange = (event) => {
+    setExitCamera(event.target.value);
   };
- 
-  // const sendSignalToArduino = async () => {
-  //   console.log("This is USB device", usbDevice);
-  //   if (!usbDevice) {
-  //     console.error('No USB device connected');
-  //     return;
-  //   }
 
-  //   try {
-  //     // Example: Sending a signal to Arduino by writing data to an endpoint
-  //     const encoder = new TextEncoder();
-  //     const data = encoder.encode('Hello Arduino!');
-  //     await usbDevice.transferOut(1, data); // Endpoint number may vary
-  //     console.log('Signal sent to Arduino');
-  //   } catch (error) {
-  //     console.error('Error sending signal to Arduino:', error);
-  //   }
-  // };
- 
-  const recognizePlate = async (imageData) => {
+  const toggleEntryStream = () => {
+    setEntryStreamActive(!entryStreamActive);
+  };
+
+  const toggleExitStream = () => {
+    setExitStreamActive(!exitStreamActive);
+  };
+
+  const recognizePlate = async (imageData, cameraType) => {
     try {
       const formData = new FormData();
-      formData.append('upload', imageData); // Add the image data to the form-data object
-  
+      formData.append('upload', imageData);
+
       const response = await fetch('https://api.platerecognizer.com/v1/plate-reader/', {
         method: 'POST',
         headers: {
-          Authorization: 'Token 465ceb1e87d760bfd0112914577fb8671a54a45b', // Replace with your Plate Recognizer API token
+          Authorization: 'Token 465ceb1e87d760bfd0112914577fb8671a54a45b',
         },
-        body: formData, // Pass the form-data object as the request body
+        body: formData,
       });
-      
+
       if (response.ok) {
         const data = await response.json();
-        console.log('License Plate:', data.results[0].plate);
-        toast.success(`Detected License Plate: ${data.results[0].plate.toUpperCase()}`);
-        checkNumberPlate(data.results[0].plate.toUpperCase());
-        sendSignalToNodeMCU();
+        const plate = data.results[0].plate.toUpperCase();
+        toast.success(`Detected License Plate: ${plate}`);
+        checkNumberPlate(plate, cameraType);
       } else {
         throw new Error('Failed to recognize license plate');
       }
@@ -146,45 +116,119 @@ const sendSignalToNodeMCU = () => {
       toast.error('Error recognizing plate');
     }
   };
-  const captureFrameAndRecognizePlate = async () => {
+
+  const captureFrameAndRecognizePlate = async (cameraType, videoRef) => {
     try {
       const canvas = document.createElement('canvas');
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-  
+
       const context = canvas.getContext('2d');
       context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-  
-      const imageData = canvas.toDataURL('image/jpeg'); // Convert canvas to base64 image
-      recognizePlate(imageData);
+
+      const imageData = canvas.toDataURL('image/jpeg');
+      recognizePlate(imageData, cameraType);
     } catch (error) {
       console.error('Error capturing frame and recognizing plate:', error);
       toast.error('Error capturing frame and recognizing plate');
     }
   };
-  
-  useEffect(() => {
-    const intervalId = setInterval(captureFrameAndRecognizePlate, 8000); // Adjust interval as needed
-    return () => clearInterval(intervalId);
-  }, []);
 
-  
+  const checkNumberPlate = (plate, cameraType) => {
+    let formData = new FormData();
+    formData.append('number_plate', plate);
+
+    let url = `${BASE_URL}/checknumberplate`;
+    axios
+      .post(url, formData)
+      .then((response) => {
+        toast.success('License Plate exists in database');
+        if (cameraType === 'entry') {
+          setExitDisabled(true);
+          setTimeout(() => setExitDisabled(false), 16000);
+        } else {
+          setEntryDisabled(true);
+          setTimeout(() => setEntryDisabled(false), 16000);
+        }
+        sendSignalToNodeMCU();
+      })
+      .catch((error) => {
+        toast.warning('License Plate not found');
+      });
+  };
+
+  const sendSignalToNodeMCU = () => {
+    let formData = new FormData();
+    formData.append('message', 'this is demo');
+    let url = 'http://192.168.170.89/signal';
+
+    axios
+      .post(url, formData)
+      .then((response) => {
+        console.log(response.data);
+        toast.success('Signal sent');
+      })
+      .catch((error) => {
+        console.error('Error sending signal:', error);
+        toast.error('Failed to send signal');
+      });
+  };
+
+  const handleMovementDetection = () => {
+    if (!movementDetected) {
+      setMovementDetected(true);
+      captureFrameAndRecognizePlate('entry', entryVideoRef);
+      captureFrameAndRecognizePlate('exit', exitVideoRef);
+      setTimeout(() => setMovementDetected(false), 8000);
+    }
+  };
+
+  useEffect(() => {
+    const entryIntervalId = setInterval(() => {
+      if (entryStreamActive) {
+        captureFrameAndRecognizePlate('entry', entryVideoRef);
+      }
+    }, 8000);
+
+    const exitIntervalId = setInterval(() => {
+      if (exitStreamActive) {
+        captureFrameAndRecognizePlate('exit', exitVideoRef);
+      }
+    }, 8000);
+
+    return () => {
+      clearInterval(entryIntervalId);
+      clearInterval(exitIntervalId);
+    };
+  }, [entryStreamActive, exitStreamActive]);
+
   return (
     <div className="container-fluid">
       <div className="row justify-content-center">
-        <div className="col-md-8">
+        <div className="col-md-6">
           <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
-            <video ref={videoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
+            <video ref={entryVideoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
           </div>
+          <button onClick={toggleEntryStream}>{entryStreamActive ? 'Stop Entry Camera' : 'Start Entry Camera'}</button>
+        </div>
+        <div className="col-md-6">
+          <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
+            <video ref={exitVideoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
+          </div>
+          <button onClick={toggleExitStream}>{exitStreamActive ? 'Stop Exit Camera' : 'Start Exit Camera'}</button>
         </div>
       </div>
       <div className="row justify-content-center mt-3">
         <div className="col-md-4">
-          <label htmlFor="cameraSelect" className="form-label">Select Camera:</label>
-          <select id="cameraSelect" className="form-select" value={selectedCamera} onChange={handleCameraChange}>
-            {cameraDevices.map(device => (
-              <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
-            ))}
+          <label htmlFor="entryCameraSelect" className="form-label">Select Entry Camera:</label>
+          <select id="entryCameraSelect" className="form-select" value={entryCamera} onChange={handleEntryCameraChange}>
+            {/* Populate options with available camera devices */}
+          </select>
+        </div>
+        <div className="col-md-4">
+          <label htmlFor="exitCameraSelect" className="form-label">Select Exit Camera:</label>
+          <select id="exitCameraSelect" className="form-select" value={exitCamera} onChange={handleExitCameraChange}>
+            {/* Populate options with available camera devices */}
           </select>
         </div>
       </div>
