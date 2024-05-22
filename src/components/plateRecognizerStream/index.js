@@ -22,7 +22,7 @@ const PlateRecognizerStream = () => {
         if (cameras.length > 0) {
           setEntryCamera(cameras[0].deviceId);
           if (cameras.length > 1) {
-            setExitCamera(cameras[1].deviceId);
+            setExitCamera(cameras[1].deviceId); // Set exit camera to the second available camera
           }
         }
       } catch (error) {
@@ -38,6 +38,7 @@ const PlateRecognizerStream = () => {
     if (streamActive) {
       entryVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
       exitVideoRef.current.srcObject.getTracks().forEach(track => track.stop());
+      setStreamActive(false);
     } else {
       try {
         const entryStream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: entryCamera } });
@@ -160,7 +161,7 @@ const PlateRecognizerStream = () => {
           <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
             <video ref={entryVideoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
           </div>
-          <label htmlFor="entryCameraSelect" className="form-label text-light">Select Entry Camera:</label>
+          <label htmlFor="entryCameraSelect" className="form-label">Select Entry Camera:</label>
           <select id="entryCameraSelect" className="form-select" value={entryCamera} onChange={handleEntryCameraChange}>
             {cameraDevices.map(device => (
               <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
@@ -171,7 +172,7 @@ const PlateRecognizerStream = () => {
           <div className="position-relative" style={{ paddingTop: '56.25%', overflow: 'hidden' }}>
             <video ref={exitVideoRef} className="position-absolute top-0 start-0 w-100 h-100" autoPlay />
           </div>
-          <label htmlFor="exitCameraSelect" className="form-label text-light">Select Exit Camera:</label>
+          <label htmlFor="exitCameraSelect" className="form-label">Select Exit Camera:</label>
           <select id="exitCameraSelect" className="form-select" value={exitCamera} onChange={handleExitCameraChange}>
             {cameraDevices.map(device => (
               <option key={device.deviceId} value={device.deviceId}>{device.label || `Camera ${device.deviceId}`}</option>
@@ -179,12 +180,11 @@ const PlateRecognizerStream = () => {
           </select>
         </div>
       </div>
-      <div className="row justify-content-center mt-3 mb-5">
-        <div className="col-md-12 col-lg-12 mb-2">
-         <center> <button onClick={toggleStream} className='btn btn-info'>{streamActive ? 'Stop Cameras' : 'Start Cameras'}</button></center>
+      <div className="row justify-content-center mt-3">
+        <div className="col-md-4">
+          <button onClick={toggleStream}>{streamActive ? 'Stop Cameras' : 'Start Cameras'}</button>
         </div>
       </div>
-     
       <ToastContainer />
     </div>
   );
